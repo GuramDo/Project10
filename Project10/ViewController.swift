@@ -102,23 +102,57 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let person = people[indexPath.item]
         
-        // Create an alert to rename the selected person
-        let ac = UIAlertController(title: "Rename Person", message: nil, preferredStyle: .alert)
-        ac.addTextField()
+        // Create an alert to ask the user whether to rename or delete the selected person
+        let ac = UIAlertController(title: "Options for \(person.name)", message: nil, preferredStyle: .alert)
         
-        // Add Cancel and OK actions to the alert
-        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        ac.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak ac] _ in
-            // Update the person's name with the new name entered by the user
-            guard let newName = ac?.textFields?[0].text else { return }
-            person.name = newName
-            
-            // Reload the collection view to reflect the updated name
-            self?.collectionView.reloadData()
+        // Add Rename action to the alert
+        ac.addAction(UIAlertAction(title: "Rename", style: .default) { [weak self] _ in
+            self?.renamePerson(person)
         })
+        
+        // Add Delete action to the alert
+        ac.addAction(UIAlertAction(title: "Delete", style: .destructive) { [weak self] _ in
+            self?.deletePerson(at: indexPath)
+        })
+        
+        // Add Cancel action to the alert
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         
         // Present the alert to the user
         present(ac, animated: true)
     }
+    
+    func renamePerson(_ person: Person) {
+        let ac = UIAlertController(title: "Rename \(person.name)", message: nil, preferredStyle: .alert)
+        ac.addTextField()
+        
+        ac.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        
+        ac.addAction(UIAlertAction(title: "OK", style: .default) { [weak self, weak ac] _ in
+            guard let newName = ac?.textFields?[0].text else { return }
+            person.name = newName
+            
+            self?.collectionView.reloadData()
+        })
+        
+        present(ac, animated: true)
+    }
+
+    func deletePerson(at indexPath: IndexPath) {
+        // Remove the person from the array and delete their image file
+        let person = people.remove(at: indexPath.item)
+        let imagePath = getDocumentsDirectory().appendingPathComponent(person.image)
+        
+        do {
+            try FileManager.default.removeItem(at: imagePath)
+        } catch {
+            print("Error deleting image: \(error)")
+        }
+        
+        // Reload the collection view to reflect the removal
+        collectionView.reloadData()
+    }
+
+
 }
 
