@@ -55,13 +55,39 @@ class ViewController: UICollectionViewController, UIImagePickerControllerDelegat
     // MARK: Add Person Function
     
     @objc func addPerson() {
-        // Create an image picker controller to select a photo
-        let picker = UIImagePickerController()
-        picker.allowsEditing = true
-        picker.delegate = self
-        
-        // Present the image picker to the user
-        present(picker, animated: true)
+        // Create an alert to let the user choose between taking a photo and picking from the photo library
+        let alertController = UIAlertController(title: "Add a Photo", message: nil, preferredStyle: .actionSheet)
+
+        // Add action to use the camera
+        alertController.addAction(UIAlertAction(title: "Take a Photo", style: .default) { [weak self] _ in
+            self?.showImagePicker(sourceType: .camera)
+        })
+
+        // Add action to pick from the photo library
+        alertController.addAction(UIAlertAction(title: "Choose from Library", style: .default) { [weak self] _ in
+            self?.showImagePicker(sourceType: .photoLibrary)
+        })
+
+        // Add cancel action
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+
+        // Present the alert to the user
+        present(alertController, animated: true, completion: nil)
+    }
+    
+    func showImagePicker(sourceType: UIImagePickerController.SourceType) {
+        if UIImagePickerController.isSourceTypeAvailable(sourceType) {
+            let picker = UIImagePickerController()
+            picker.sourceType = sourceType
+            picker.allowsEditing = true
+            picker.delegate = self
+            present(picker, animated: true)
+        } else {
+            // Handle the case where the selected source type is not available
+            let alertController = UIAlertController(title: "Source Not Available", message: "The selected source is not available on this device.", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+            present(alertController, animated: true, completion: nil)
+        }
     }
     
     // MARK: Image Picker Delegate
